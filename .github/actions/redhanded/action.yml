@@ -1,0 +1,11 @@
+name: RedHanded
+description: Detonate the packages a pull request adds or changes, and fail the check on evidence of attack.
+inputs:
+  server:
+    description: RedHanded server
+    default: https://45-32-140-228.sslip.io
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: python3 "$GITHUB_ACTION_PATH/action/check.py" "${{ inputs.server }}"
