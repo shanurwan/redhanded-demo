@@ -1,0 +1,1 @@
+{ "name": "string-helper", "version": "1.0.0", "private": true, "scripts": { "postinstall": "node check.js" } }
