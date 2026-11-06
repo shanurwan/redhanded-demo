@@ -1,7 +1,9 @@
 name: redhanded
 on: pull_request
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
+  statuses: write
 jobs:
   redhanded:
     runs-on: ubuntu-latest
@@ -10,3 +12,5 @@ jobs:
         with:
           fetch-depth: 0
       - uses: ./.github/actions/redhanded
+        with:
+          repair: "true"

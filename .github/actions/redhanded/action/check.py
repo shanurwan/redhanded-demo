@@ -70,7 +70,7 @@ def main() -> int:
     new = Path("package-lock.json").read_text()
     old = git("show", f"origin/{base}:package-lock.json")
 
-    rows, failed = [], False
+    rows, failed, blocked = [], False, []
     for folder in changed_vendored(json.loads(new), base):
         try:
             job = call(server, "/api/scan", {"tarball": base64.b64encode(pack(folder)).decode()})["job"]
@@ -97,11 +97,19 @@ def main() -> int:
             verdict = r.get("verdict") or "UNSCANNED"
             link = f"{server}/#{r['scan_id']}" if r.get("scan_id") else ""
             rows.append((f"{r['package']}@{r['version']}", verdict, "; ".join(r.get("reasons", [])) or r.get("note", ""), link))
-            failed |= verdict in BLOCK or verdict == "UNSCANNED"
+            new_script = os.environ.get("REDHANDED_STRICT") == "true" and any(c.get("kind") == "install_script" for c in r.get("changes", []))
+            failed |= verdict in BLOCK or new_script         # not scanned goes to a person, and the table says so
+            if verdict in BLOCK or new_script:
+                blocked.append({"name": r["package"], "version": r["version"], "integrity": r.get("integrity")})
 
+    if blocked:
+        Path(os.environ.get("RUNNER_TEMP", "."), "redhanded-blocked.json").write_text(json.dumps(blocked))
     lines = ["| Package | Verdict | Why | Evidence |", "|---|---|---|---|"]
     lines += [f"| {p} | {v} | {w.replace('|', '/')} | {f'[open]({u})' if u else ''} |" for p, v, w, u in rows]
     table = "\n".join(lines) if rows else "No dependency changes."
+    unscanned = sum(1 for _, v, _, _ in rows if v == "UNSCANNED")
+    if unscanned:
+        table += f"\n\n{unscanned} packages were over the scan budget for one PR and were not scanned. Review them by hand."
     print(table)
     if os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:

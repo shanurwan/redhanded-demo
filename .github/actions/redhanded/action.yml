@@ -1,11 +1,27 @@
 name: RedHanded
-description: Detonate the packages a pull request adds or changes, and fail the check on evidence of attack.
+description: Run the packages a pull request adds or changes on a baited machine, fail on evidence of attack, and open the fix.
 inputs:
   server:
     description: RedHanded server
     default: https://45-32-140-228.sslip.io
+  strict:
+    description: Also fail when a release adds an install script its predecessor never had
+    default: "false"
+  repair:
+    description: After a block, open a PR that goes back to the closest version RedHanded cleared. Needs contents and pull-requests write.
+    default: "false"
+  token:
+    description: Token used to open the fix
+    default: ${{ github.token }}
 runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        REDHANDED_STRICT: ${{ inputs.strict }}
       run: python3 "$GITHUB_ACTION_PATH/action/check.py" "${{ inputs.server }}"
+    - if: failure() && inputs.repair == 'true'
+      shell: bash
+      env:
+        REDHANDED_TOKEN: ${{ inputs.token }}
+      run: python3 "$GITHUB_ACTION_PATH/action/repair.py" "${{ inputs.server }}"
