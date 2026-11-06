@@ -1,1 +1,9 @@
-{"name":"redhanded-demo","version":"1.0.0","private":true,"dependencies":{"@opensearch-project/opensearch":"3.5.1","is-odd":"3.0.1"}}
+{
+  "name": "redhanded-demo",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@opensearch-project/opensearch": "3.6.2",
+    "is-odd": "3.0.1"
+  }
+}
