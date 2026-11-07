@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@opensearch-project/opensearch": "3.6.2",
+    "@opensearch-project/opensearch": "3.6.0",
     "is-odd": "3.0.1"
   }
 }
